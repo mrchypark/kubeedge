@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -138,6 +139,7 @@ func TestProcessInsert(t *testing.T) {
 			Namespace: "default",
 		},
 	}
+	time.Sleep(50 * time.Millisecond)
 	beehiveContext.SendResp(message)
 	message, err = beehiveContext.Receive(ModuleNameEdged)
 	t.Run("Insert failed", func(t *testing.T) {
@@ -170,6 +172,7 @@ func TestProcessInsert(t *testing.T) {
 			Namespace: "default",
 		},
 	}
+	time.Sleep(50 * time.Millisecond)
 	beehiveContext.SendResp(message)
 	message, err = beehiveContext.Receive(ModuleNameEdged)
 	assert.NoError(t, err)
@@ -201,6 +204,7 @@ func TestProcessInsert(t *testing.T) {
 		return
 	}
 	message.Header.ParentID = message.GetID()
+	time.Sleep(50 * time.Millisecond)
 	beehiveContext.SendResp(message)
 	message, err = beehiveContext.Receive(ModuleNameEdged)
 	t.Run("MarshallFail", func(t *testing.T) {
@@ -518,6 +522,7 @@ func TestProcessDelete(t *testing.T) {
 	rawSetterMock := beego.NewMockRawSeter(mockCtrl)
 	deleteRes := beego.NewMockDriverRes(mockCtrl)
 	dbm.DBAccess = ormerMock
+	ormerMock.EXPECT().Delete(gomock.Any()).Return(int64(1), nil).AnyTimes()
 	meta := newMetaManager(true)
 	core.Register(meta)
 
@@ -648,6 +653,7 @@ func TestProcessDelete_SuccessDeletePodToEdged(t *testing.T) {
 	deleteRes.EXPECT().RowsAffected().Return(int64(1), nil).Times(1)
 	rawSetterMock.EXPECT().Exec().Return(deleteRes, nil).Times(1)
 	ormerMock.EXPECT().Raw(gomock.Any(), gomock.Any()).Return(rawSetterMock).Times(1)
+	ormerMock.EXPECT().Delete(gomock.Any()).Return(int64(1), nil).AnyTimes()
 	querySetterMock.EXPECT().Filter(gomock.Any(), gomock.Any()).Return(querySetterMock).Times(1)
 	querySetterMock.EXPECT().Delete().Return(int64(1), nil).Times(1)
 	ormerMock.EXPECT().QueryTable(gomock.Any()).Return(querySetterMock).Times(1)
